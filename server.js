@@ -7,11 +7,11 @@ const fs = require("fs");
 const parse = require("csv-parse/sync").parse;
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // === Config ===
 const API_KEY = process.env.API_KEY;
-const STOP_ID = "9022021480323001"; // Replace with your stop
+const STOP_ID = process.env.STOP_ID;
 const GTFS_PROTO = "./gtfs-realtime.proto";
 const GTFS_URL = `https://opendata.samtrafiken.se/gtfs-rt/xt/TripUpdates.pb?key=${API_KEY}`;
 
@@ -37,6 +37,10 @@ app.get("/api/departures", async (req, res) => {
 
   if (cachedDepartures && now - lastFetchTime < CACHE_DURATION) {
     return res.json(cachedDepartures);
+  }
+
+  if (!STOP_ID) {
+    return res.status(500).json({ error: "No STOP_ID defined" });
   }
 
   try {

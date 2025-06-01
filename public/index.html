@@ -36,20 +36,33 @@
     </thead>
     <tbody id="departures"></tbody>
   </table>
+  <div id="status" style="color: red; font-weight: bold;"></div>
 
   <script>
     async function loadDepartures() {
-      const res = await fetch("/api/departures");
-      const data = await res.json();
+        const statusDiv = document.getElementById("status");
+        try {
+            const res = await fetch("/api/departures");
 
-      const tbody = document.getElementById("departures");
-      tbody.innerHTML = "";
-
-      data.forEach(dep => {
-        const row = document.createElement("tr");
-        row.innerHTML = `<td>${dep.route}</td><td>${dep.time}</td>`;
-        tbody.appendChild(row);
-      });
+            if (!res.ok) {
+                const errorData = await res.json();
+                statusDiv.textContent = `Error: ${errorData.error || res.statusText}`;
+                return;
+            }
+            
+            const data = await res.json();
+            
+            const tbody = document.getElementById("departures");
+            tbody.innerHTML = "";
+            
+            data.forEach(dep => {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td>${dep.route}</td><td>${dep.time}</td>`;
+                tbody.appendChild(row);
+            });
+        } catch (err) {
+            statusDiv.textContent = `Network error: ${err.message}`;
+        }
     }
 
     loadDepartures();
