@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <title>Avgångstavla</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f4f4f4;
+      padding: 2rem;
+      text-align: center;
+    }
+    table {
+      margin: 0 auto;
+      border-collapse: collapse;
+      width: 300px;
+    }
+    th, td {
+      border: 1px solid #aaa;
+      padding: 0.75rem;
+    }
+    th {
+      background: #0077cc;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>Avgångar</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Linje</th>
+        <th>Tid</th>
+      </tr>
+    </thead>
+    <tbody id="departures"></tbody>
+  </table>
+
+  <script>
+    async function loadDepartures() {
+      const res = await fetch("/api/departures");
+      const data = await res.json();
+
+      const tbody = document.getElementById("departures");
+      tbody.innerHTML = "";
+
+      data.forEach(dep => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${dep.route}</td><td>${dep.time}</td>`;
+        tbody.appendChild(row);
+      });
+    }
+
+    loadDepartures();
+    setInterval(loadDepartures, 30 * 1000); // Refresh every 30 seconds
+  </script>
+</body>
+</html>

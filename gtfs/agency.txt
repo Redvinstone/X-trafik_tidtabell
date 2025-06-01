@@ -1,0 +1,3 @@
+agency_id,agency_name,agency_url,agency_timezone,agency_lang,agency_fare_url
+217990000000001393,X-Trafik,https://xtrafik.se/,Europe/Stockholm,sv,https://xtrafik.se/
+217990000004615809,X-Trafik Kundtjänst,https://www.resrobot.se/,Europe/Stockholm,sv,
