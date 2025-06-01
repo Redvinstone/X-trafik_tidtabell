@@ -53,18 +53,33 @@
             
             const data = await res.json();
 
+            if (typeof data !== "object" || !data.departures || !data.stopDisplayName) {
+                statusDiv.textContent = "Unexpected server response format.";
+                console.warn("Unexpected response:", data);
+                return;
+            }
+            
             const stop = document.getElementById("stop");
-            stop.innerText = data[0].displayName;
+            stop.innerText = data.stopDisplayName;
             console.log(data)
             
             const tbody = document.getElementById("departures");
             tbody.innerHTML = "";
             
-            data.forEach(dep => {
+            data.departures.forEach(dep => {
                 const row = document.createElement("tr");
                 row.innerHTML = `<td>${dep.route}</td><td>${dep.time}</td>`;
                 tbody.appendChild(row);
             });
+
+            if (data.departures.length === 0) {
+                const row = document.createElement("tr");
+                const cell = document.createElement("td");
+                cell.colSpan = 2;
+                cell.textContent = "Inga avgångar hittades";
+                row.appendChild(cell);
+                tbody.appendChild(row);
+            }
         } catch (err) {
             statusDiv.textContent = `Network error: ${err.message}`;
         }

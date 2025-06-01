@@ -40,6 +40,8 @@ function getStopDisplayName(stopId) {
   return `${name} läge ${platform}`;
 }
 
+const stopDisplayName = getStopDisplayName(STOP_ID);
+
 // === API Route ===
 let cachedDepartures = null;
 let lastFetchTime = 0;
@@ -49,7 +51,7 @@ app.get("/api/departures", async (req, res) => {
   const now = Date.now();
 
   if (cachedDepartures && now - lastFetchTime < CACHE_DURATION) {
-    return res.json(cachedDepartures);
+    return res.json({stopDisplayName: stopDisplayName, departures: cachedDepartures});
   }
 
   if (!STOP_ID) {
@@ -81,8 +83,7 @@ app.get("/api/departures", async (req, res) => {
               route: routeName,
               time: new Date(depTime * 1000).toLocaleTimeString("sv-SE", {
                 hour: "2-digit", minute: "2-digit"
-              }),
-              displayName: getStopDisplayName(STOP_ID)
+              })
             });
           }
         }
@@ -94,7 +95,7 @@ app.get("/api/departures", async (req, res) => {
     cachedDepartures = departures; // store result
     lastFetchTime = now;
 
-    res.json(departures);
+    res.json({stopDisplayName: stopDisplayName, departures: departures});
   } catch (err) {
     console.error("Error loading departures:", err);
     res.status(500).json({ error: "Failed to fetch departures" });
