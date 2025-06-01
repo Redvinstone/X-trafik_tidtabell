@@ -27,6 +27,7 @@
 </head>
 <body>
   <h1>Avgångar</h1>
+  <h2 id="stop"></h2>
   <table>
     <thead>
       <tr>
@@ -51,6 +52,10 @@
             }
             
             const data = await res.json();
+
+            const stop = document.getElementById("stop");
+            stop.innerText = data[0].displayName;
+            console.log(data)
             
             const tbody = document.getElementById("departures");
             tbody.innerHTML = "";

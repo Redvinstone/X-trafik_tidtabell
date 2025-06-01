@@ -27,6 +27,19 @@ const TRIPS_MAP = parse(fs.readFileSync("./gtfs/trips.txt"), { columns: true })
     return map;
   }, {});
 
+// Get stop display name
+const stopsCsv = fs.readFileSync("./gtfs/stops.txt", "utf-8");
+const stops = parse(stopsCsv, { columns: true });
+
+function getStopDisplayName(stopId) {
+  const stop = stops.find(s => s.stop_id === stopId);
+  if (!stop) return `Unknown stop (${stopId})`;
+
+  const name = stop.stop_name || "Unnamed stop";
+  const platform = stop.platform_code || "?";
+  return `${name} läge ${platform}`;
+}
+
 // === API Route ===
 let cachedDepartures = null;
 let lastFetchTime = 0;
@@ -68,7 +81,8 @@ app.get("/api/departures", async (req, res) => {
               route: routeName,
               time: new Date(depTime * 1000).toLocaleTimeString("sv-SE", {
                 hour: "2-digit", minute: "2-digit"
-              })
+              }),
+              displayName: getStopDisplayName(STOP_ID)
             });
           }
         }
