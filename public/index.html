@@ -31,6 +31,7 @@
   <table>
     <thead>
       <tr>
+        <th>Läge</th>
         <th>Linje</th>
         <th>Tid</th>
       </tr>
@@ -42,6 +43,7 @@
   <script>
     async function loadDepartures() {
         const statusDiv = document.getElementById("status");
+        statusDiv.textContent = "";
         try {
             const res = await fetch("/api/departures");
 
@@ -68,7 +70,7 @@
             
             data.departures.forEach(dep => {
                 const row = document.createElement("tr");
-                row.innerHTML = `<td>${dep.route}</td><td>${dep.time}</td>`;
+                row.innerHTML = `<td>${dep.platform}</td><td>${dep.route}</td><td>${dep.time}</td>`;
                 tbody.appendChild(row);
             });
 
