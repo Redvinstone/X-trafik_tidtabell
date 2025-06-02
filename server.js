@@ -12,6 +12,8 @@ const PORT = process.env.PORT || 3000;
 // === Config ===
 const API_KEY = process.env.API_KEY;
 const STOP_ID = process.env.STOP_ID;
+let STOP_IDS
+const STOP_NAME = process.env.STOP_NAME || null;
 const GTFS_PROTO = "./gtfs-realtime.proto";
 const GTFS_URL = `https://opendata.samtrafiken.se/gtfs-rt/xt/TripUpdates.pb?key=${API_KEY}`;
 
@@ -40,7 +42,39 @@ function getStopDisplayName(stopId) {
   return `${name} läge ${platform}`;
 }
 
-const stopDisplayName = getStopDisplayName(STOP_ID);
+// Get stop id from name
+function getStopIdsFromName(name) {
+  if (name) {
+    MATCHING_STOP_IDS = stops
+      .filter(stop => stop.stop_name.toLowerCase().includes(STOP_NAME.toLowerCase()))
+      .map(stop => stop.stop_id);
+    
+    console.log(`Matched stops for "${name}":`, MATCHING_STOP_IDS);
+  }
+  if (!MATCHING_STOP_IDS) return null;
+  return MATCHING_STOP_IDS;
+}
+
+if (STOP_ID) {
+  stopDisplayName = getStopDisplayName(STOP_ID);
+} else if (STOP_NAME) {
+  const matchingStopIds = getStopIdsFromName(STOP_NAME);
+  if (matchingStopIds.length === 1) {
+    STOP_IDS = matchingStopIds;
+    console.log(`Single stop matched for "${STOP_NAME}":`, matchingStopIds[0]);
+    stopDisplayName = getStopDisplayName(STOP_ID);
+  } else if (matchingStopIds.length > 1) {
+    STOP_IDS = matchingStopIds;
+    console.log(`Multiple stops matched for "${STOP_NAME}":`, matchingStopIds);
+    stopDisplayName = STOP_NAME;
+  } else {
+    console.error(`No stops found for "${STOP_NAME}"`);
+    stopDisplayName = `No stops found for "${STOP_NAME}"`;
+  }
+} else {
+  console.error("No STOP_ID or STOP_NAME defined in environment variables");
+  stopDisplayName = "No stop defined";
+}
 
 // === API Route ===
 let cachedDepartures = null;
@@ -54,7 +88,7 @@ app.get("/api/departures", async (req, res) => {
     return res.json({stopDisplayName: stopDisplayName, departures: cachedDepartures});
   }
 
-  if (!STOP_ID) {
+  if (!STOP_ID && !STOP_IDS) {
     return res.status(500).json({ error: "No STOP_ID defined" });
   }
 
@@ -73,7 +107,7 @@ app.get("/api/departures", async (req, res) => {
       if (!update?.stopTimeUpdate) return;
 
       update.stopTimeUpdate.forEach(u => {
-        if (u.stopId === STOP_ID) {
+        if (STOP_ID && u.stopId === STOP_ID || STOP_IDS?.includes(u.stopId)) {
           const depTime = u.departure?.time || u.arrival?.time;
           if (depTime) {
             const routeId = TRIPS_MAP[update.trip?.tripId];
@@ -83,7 +117,8 @@ app.get("/api/departures", async (req, res) => {
               route: routeName,
               time: new Date(depTime * 1000).toLocaleTimeString("sv-SE", {
                 hour: "2-digit", minute: "2-digit"
-              })
+              }),
+              platform: stops.find(s => s.stop_id === u.stopId)?.platform_code || "?"
             });
           }
         }
